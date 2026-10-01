@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,7 +26,20 @@ SECRET_KEY = 'django-insecure-ac=#%ao@n4j-)l=9bgdnac=i#_ba3d79zh^k4m_dq^&z)02c9=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+NGROK_HOST = os.environ.get("NGROK_HOST", "5092-176-102-32-215.ngrok-free.app").strip()
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0"]
+if NGROK_HOST:
+    ALLOWED_HOSTS.append(NGROK_HOST)
+ALLOWED_HOSTS.extend(
+    host.strip()
+    for host in os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",")
+    if host.strip()
+)
+CSRF_TRUSTED_ORIGINS = [
+    f"{scheme}://{host}"
+    for host in ALLOWED_HOSTS
+    for scheme in ("http", "https")
+]
 
 
 # Application definition
@@ -37,6 +51,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'finance.apps.FinanceConfig',
 ]
 
 MIDDLEWARE = [
@@ -103,9 +118,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'uk'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Kyiv'
 
 USE_I18N = True
 
@@ -121,3 +136,7 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/login/'

@@ -1,0 +1,19 @@
+{% extends 'finance/base.html' %}
+{% block title %}Цілі заощаджень{% endblock %}
+{% block content %}
+<section class="content-page goals-page">
+  <div class="page-heading"><div><p class="eyebrow">ПЛАНИ НА МАЙБУТНЄ</p><h1>Цілі заощаджень<span class="heading-dot">.</span></h1><p class="subheading">Внески відстежуються окремо й не змінюють баланс рахунків.</p></div><a class="button button-primary" href="{% url 'savings_goal_create' %}"><span class="plus">+</span> Нова ціль</a></div>
+  {% if goals %}<div class="goal-summary"><span>{{ active_goal_count }} активних цілей</span><strong>{{ total_saved|floatformat:2 }} ₴ <small>накопичено</small></strong></div><div class="goal-grid">
+    {% for goal in goals %}<article class="savings-goal-card{% if goal.is_archived %} savings-goal-card--archived{% endif %}{% if goal.is_complete %} savings-goal-card--complete{% endif %}">
+      <header class="goal-card-heading"><div class="goal-symbol" aria-hidden="true">{% if goal.is_complete %}✓{% else %}◇{% endif %}</div><div class="goal-heading-copy"><h2>{{ goal.name }}</h2>{% if goal.target_date %}<small>Ціль до {{ goal.target_date|date:'j E Y' }}</small>{% else %}<small>Без кінцевої дати</small>{% endif %}</div><a class="goal-edit" href="{% url 'savings_goal_update' goal.pk %}" aria-label="Налаштувати ціль {{ goal.name }}">•••</a></header>
+      <div class="goal-amounts"><strong>{{ goal.saved_amount|floatformat:2 }} <small>₴</small></strong><span>з {{ goal.target_amount|floatformat:2 }} ₴</span></div>
+      <div class="goal-progress-track" role="progressbar" aria-label="Прогрес цілі {{ goal.name }}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ goal.progress_percent }}"><span style="width: {{ goal.progress_percent }}%"></span></div>
+      <div class="goal-progress-caption"><span>{{ goal.progress_percent }}% зібрано</span>{% if goal.is_complete %}<strong class="goal-complete-label">Досягнуто</strong>{% else %}<span>Ще {{ goal.remaining_amount|floatformat:2 }} ₴</span>{% endif %}</div>
+      {% if goal.note %}<p class="goal-note">{{ goal.note }}</p>{% endif %}
+      {% if goal.recent_contributions %}<div class="goal-contributions"><div class="goal-contributions-heading"><span>ОСТАННІ ВНЕСКИ</span><span>{{ goal.contributions.count }}</span></div>{% for contribution in goal.recent_contributions %}<div class="goal-contribution-row"><span>{{ contribution.contributed_on|date:'j M Y' }}{% if contribution.note %}<small> · {{ contribution.note }}</small>{% endif %}</span><strong>+{{ contribution.amount|floatformat:2 }} ₴</strong><form method="post" action="{% url 'savings_contribution_delete' contribution.pk %}" onsubmit="return confirm('Видалити цей внесок?')">{% csrf_token %}<button type="submit" aria-label="Видалити внесок {{ contribution.amount|floatformat:2 }} гривень">×</button></form></div>{% endfor %}</div>{% endif %}
+      <footer class="goal-card-footer">{% if goal.is_archived %}<span class="goal-archived-label">В архіві</span>{% elif goal.is_complete %}<span class="goal-complete-label">Ціль досягнута</span>{% else %}<a class="button button-primary button-small" href="{% url 'savings_contribution_create' goal.pk %}">+ Додати внесок</a>{% endif %}<a class="goal-details-link" href="{% url 'savings_goal_update' goal.pk %}">Налаштувати ціль</a></footer>
+    </article>{% endfor %}
+    <a class="savings-goal-card savings-goal-card--add" href="{% url 'savings_goal_create' %}"><span>+</span><strong>Додати нову ціль</strong></a>
+  </div>{% else %}<section class="panel goals-empty"><span class="empty-mark">◇</span><h2>На що відкладаємо?</h2><p>Створи першу ціль, визнач суму й додавай внески, щоб бачити свій поступ.</p><a class="button button-primary" href="{% url 'savings_goal_create' %}">Створити ціль</a></section>{% endif %}
+</section>
+{% endblock %}

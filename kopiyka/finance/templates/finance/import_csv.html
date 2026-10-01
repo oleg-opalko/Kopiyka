@@ -1,0 +1,41 @@
+{% extends 'finance/base.html' %}
+{% block title %}Імпорт CSV{% endblock %}
+{% block content %}
+<section class="content-page import-page">
+  <a class="back-link" href="{% url 'transaction_list' %}">← До операцій</a>
+  <div class="page-heading"><div><p class="eyebrow">ПЕРЕНЕСЕННЯ ДАНИХ</p><h1>Імпорт виписки<span class="heading-dot">.</span></h1><p class="subheading">Завантаж CSV, перевір записи й підтверди імпорт.</p></div></div>
+
+  {% if step == 'upload' %}
+  <form method="post" enctype="multipart/form-data" class="form-panel import-upload-panel">{% csrf_token %}<input type="hidden" name="action" value="upload">
+    <div class="import-step-mark">01 <span>ФАЙЛ</span></div>
+    {% if upload_form.non_field_errors %}<div class="form-errors">{{ upload_form.non_field_errors }}</div>{% endif %}
+    {% for field in upload_form %}<div class="field-group{% if field.errors %} field-error{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<small class="error-text">{{ error }}</small>{% endfor %}</div>{% endfor %}
+    <p class="import-note">Підтримуються CSV у UTF-8 та Windows-1251, до 2 МБ і 1000 операцій. Файл не зберігається; записи потраплять у журнал лише після підтвердження.</p>
+    <button class="button button-primary" type="submit">Продовжити до preview</button>
+  </form>
+
+  {% elif step == 'mapping' %}
+  <form method="post" class="form-panel import-mapping-panel">{% csrf_token %}<input type="hidden" name="action" value="preview">
+    <div class="import-step-mark">02 <span>ЗІСТАВЛЕННЯ КОЛОНОК</span></div>
+    <p class="import-note">Знайдено {{ row_count }} рядків. Перевір відповідність полів: поширені назви колонок уже підібрані автоматично.</p>
+    {% if mapping_form.non_field_errors %}<div class="form-errors">{{ mapping_form.non_field_errors }}</div>{% endif %}
+    <div class="mapping-grid">{% for field in mapping_form %}<div class="field-group{% if field.errors %} field-error{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="required-mark">*</span>{% endif %}</label>{{ field }}{% for error in field.errors %}<small class="error-text">{{ error }}</small>{% endfor %}</div>{% endfor %}</div>
+    <div class="csv-columns"><span class="eyebrow">КОЛОНКИ ФАЙЛУ</span><div>{% for header in headers %}<span>{{ forloop.counter }} · {{ header|default:'(без назви)' }}</span>{% endfor %}</div></div>
+    <div class="form-actions"><button class="button button-primary" type="submit">Переглянути операції</button><a class="button button-quiet" href="{% url 'transaction_import' %}?reset=1">Обрати інший файл</a></div>
+  </form>
+
+  {% elif step == 'preview' %}
+  <div class="import-status-grid">
+    <div class="import-stat"><strong>{{ valid_count }}</strong><span>готові до імпорту</span></div>
+    <div class="import-stat import-stat--duplicate"><strong>{{ duplicate_count }}</strong><span>дублікати, буде пропущено</span></div>
+    <div class="import-stat import-stat--error"><strong>{{ error_count }}</strong><span>рядки з помилками</span></div>
+  </div>
+  <form method="post" class="import-preview-form">{% csrf_token %}<input type="hidden" name="action" value="import">
+    <div class="csv-preview-scroll"><table class="csv-preview-table"><thead><tr><th>Імпорт</th><th>Рядок</th><th>Дата</th><th>Тип</th><th>Операція</th><th>Рахунок</th><th>Сума</th><th>Статус</th></tr></thead><tbody>
+      {% for row in preview %}<tr class="{% if row.errors %}csv-row--error{% elif row.duplicate %}csv-row--duplicate{% endif %}"><td>{% if not row.errors and not row.duplicate %}<input type="checkbox" name="selected" value="{{ forloop.counter0 }}" checked aria-label="Імпортувати рядок {{ row.line }}">{% else %}<span class="row-disabled-mark">—</span>{% endif %}</td><td>{{ row.line }}</td><td>{{ row.occurred_on|default:'—' }}</td><td>{{ row.kind_label|default:'—' }}</td><td><strong>{{ row.category_name }}</strong>{% if row.note %}<small>{{ row.note }}</small>{% endif %}{% if row.transfer_to_name %}<small>→ {{ row.transfer_to_name }}</small>{% endif %}</td><td>{{ row.account_name|default:'—' }}</td><td class="csv-amount">{% if row.kind == 'expense' %}−{% elif row.kind == 'income' %}+{% endif %}{{ row.amount|default:'—' }} ₴</td><td>{% if row.errors %}<ul class="csv-errors">{% for error in row.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% elif row.duplicate %}<span class="csv-status csv-status--duplicate">Дублікат</span>{% else %}<span class="csv-status csv-status--ready">Готово</span>{% endif %}</td></tr>{% endfor %}
+    </tbody></table></div>
+    <div class="import-preview-actions"><a class="button button-quiet" href="{% url 'transaction_import' %}?reset=1">Скасувати імпорт</a><button class="button button-primary" type="submit"{% if not valid_count %} disabled{% endif %}>Імпортувати вибрані ({{ valid_count }})</button></div>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}

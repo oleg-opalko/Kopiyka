@@ -1,0 +1,76 @@
+{% load static %}
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f4f6f1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>{% block title %}Kopiyka{% endblock %} · Kopiyka</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+  <link rel="manifest" href="{% url 'pwa_manifest' %}">
+  <link rel="icon" type="image/svg+xml" href="{% static 'finance/icon.svg' %}">
+  <link rel="stylesheet" href="{% static 'finance/app.css' %}?v=mobile-add-center-1">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <div class="app-shell">
+    {% if request.user.is_authenticated %}
+    <aside class="sidebar">
+      <a class="brand" href="{% url 'dashboard' %}" aria-label="Kopiyka, огляд">
+        <span class="brand-mark">k</span><span>Kopiyka</span>
+      </a>
+      <div class="side-label">ОСОБИСТИЙ ПРОСТІР</div>
+      <nav class="side-links" aria-label="Головна навігація">
+        <a class="{% if request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}" href="{% url 'dashboard' %}"><span class="nav-glyph">◫</span>Огляд</a>
+        <a class="{% if request.resolver_match.url_name == 'transaction_list' or request.resolver_match.url_name == 'transaction_import' %}is-active{% endif %}" href="{% url 'transaction_list' %}"><span class="nav-glyph">↕</span>Операції</a>
+        <a class="{% if 'account' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'account_list' %}"><span class="nav-glyph">▣</span>Рахунки</a>
+        <a class="{% if request.resolver_match.url_name == 'reports' %}is-active{% endif %}" href="{% url 'reports' %}"><span class="nav-glyph">⌁</span>Звіти</a>
+        <a class="{% if 'savings_goal' in request.resolver_match.url_name or 'savings_contribution' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'savings_goal_list' %}"><span class="nav-glyph">◇</span>Цілі</a>
+        <a class="{% if 'recurring' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'recurring_list' %}"><span class="nav-glyph">⟳</span>Регулярні</a>
+        <a class="{% if request.resolver_match.url_name == 'budget_settings' %}is-active{% endif %}" href="{% url 'budget_settings' %}"><span class="nav-glyph">▥</span>Бюджети</a>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="user-chip"><span class="avatar">{{ request.user.username|first|upper }}</span><span class="user-name">{{ request.user.username }}</span></div>
+        <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="text-button" type="submit">Вийти</button></form>
+      </div>
+    </aside>
+    {% endif %}
+    <main class="main-area {% if not request.user.is_authenticated %}main-area--public{% endif %}">
+      {% if request.user.is_authenticated %}
+      <header class="topbar">
+        <a class="brand brand--mobile" href="{% url 'dashboard' %}"><span class="brand-mark">k</span><span>Kopiyka</span></a>
+        <div class="topbar-spacer"></div>
+        <button class="install-button" id="install-app" type="button" aria-label="Встановити Kopiyka" title="Встановити Kopiyka" hidden><span aria-hidden="true">↓</span><span class="install-label">Встановити</span></button>
+        <a class="button button-primary top-add" href="{% url 'transaction_create' %}"><span class="plus">+</span> Додати операцію</a>
+      </header>
+      {% endif %}
+      {% if messages %}<div class="messages" aria-live="polite">{% for message in messages %}<div class="message">{{ message }}</div>{% endfor %}</div>{% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  {% if request.user.is_authenticated %}
+  <nav class="mobile-nav" aria-label="Мобільна навігація">
+    <a class="{% if request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}" href="{% url 'dashboard' %}"><span>◫</span>Огляд</a>
+    <a class="{% if request.resolver_match.url_name == 'transaction_list' or request.resolver_match.url_name == 'transaction_import' %}is-active{% endif %}" href="{% url 'transaction_list' %}"><span>↕</span>Операції</a>
+    <a class="mobile-add" href="{% url 'transaction_create' %}" aria-label="Додати операцію">+</a>
+    <a class="{% if request.resolver_match.url_name == 'budget_settings' %}is-active{% endif %}" href="{% url 'budget_settings' %}"><span>▥</span>Бюджет</a>
+    <a class="{% if 'account' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'account_list' %}"><span>▣</span>Рахунки</a>
+    <a class="{% if request.resolver_match.url_name == 'reports' %}is-active{% endif %}" href="{% url 'reports' %}"><span>⌁</span>Звіти</a>
+    <a class="{% if 'savings_goal' in request.resolver_match.url_name or 'savings_contribution' in request.resolver_match.url_name %}is-active{% endif %}" href="{% url 'savings_goal_list' %}"><span>◇</span>Цілі</a>
+  </nav>
+  {% endif %}
+  <dialog class="install-dialog" id="ios-install-help" aria-labelledby="ios-install-title">
+    <form method="dialog" class="install-dialog-close"><button class="icon-close" aria-label="Закрити">×</button></form>
+    <span class="install-dialog-mark" aria-hidden="true">↥</span>
+    <p class="eyebrow">ВСТАНОВЛЕННЯ</p>
+    <h2 id="ios-install-title">Додай Kopiyka на екран</h2>
+    <p>У Safari натисни «Поділитися», а потім вибери «На початковий екран».</p>
+    <button class="button button-primary" type="button" id="ios-install-close">Гаразд</button>
+  </dialog>
+  <script src="{% static 'finance/pwa.js' %}" defer></script>
+</body>
+</html>

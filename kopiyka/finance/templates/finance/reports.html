@@ -1,0 +1,39 @@
+{% extends 'finance/base.html' %}
+{% block title %}Звіти{% endblock %}
+{% block content %}
+<section class="content-page reports-page">
+  <div class="page-heading"><div><p class="eyebrow">АНАЛІЗ ФІНАНСІВ</p><h1>Звіти<span class="heading-dot">.</span></h1><p class="subheading">Порівняй рух грошей за вибраний період.</p></div>{% if has_report %}<a class="button button-primary" href="{% url 'export_transactions_csv' %}?{{ export_query }}"><span class="download-mark">↓</span> Експорт CSV</a>{% endif %}</div>
+
+  <form class="report-filter panel" method="get">
+    {% for field in form %}<div class="field-group{% if field.errors %} field-error{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<small class="error-text">{{ error }}</small>{% endfor %}</div>{% endfor %}
+    <button class="button button-quiet" type="submit">Побудувати звіт</button>
+  </form>
+
+  {% if has_report %}
+  <div class="report-period"><span>{{ date_from|date:'j E Y' }} — {{ date_to|date:'j E Y' }}</span><span>{{ transfer_count }} переказів окремо від доходів і витрат</span></div>
+  <section class="summary-grid report-summary" aria-label="Підсумок за період">
+    <div class="summary-item summary-item--primary"><span class="summary-label">ДОХОДИ</span><strong>{{ income|floatformat:2 }} <small>₴</small></strong><span class="summary-note">Надходження за період</span></div>
+    <div class="summary-item"><span class="summary-label">ВИТРАТИ</span><strong>{{ expenses|floatformat:2 }} <small>₴</small></strong><span class="summary-note">Без внутрішніх переказів</span></div>
+    <div class="summary-item"><span class="summary-label">РІЗНИЦЯ</span><strong class="{% if net < 0 %}negative{% else %}positive{% endif %}">{{ net|floatformat:2 }} <small>₴</small></strong><span class="summary-note">Доходи мінус витрати</span></div>
+  </section>
+
+  <div class="report-grid">
+    <section class="panel report-month-panel">
+      <div class="section-heading"><div><p class="eyebrow">ДОХОДИ Й ВИТРАТИ</p><h2>Порівняння місяців</h2></div><span class="unit-label">грн</span></div>
+      {% if monthly_rows %}<div class="month-report-list">{% for row in monthly_rows %}<div class="month-report-row"><div class="month-report-label"><strong>{{ row.label }}</strong><span class="{% if row.net < 0 %}negative{% else %}positive{% endif %}">{{ row.net|floatformat:0 }} ₴</span></div><div class="month-report-bars"><div class="month-bar-line"><span class="month-bar-income" style="width: {{ row.income_width }}%"></span><small>{{ row.income|floatformat:0 }}</small></div><div class="month-bar-line"><span class="month-bar-expense" style="width: {{ row.expenses_width }}%"></span><small>{{ row.expenses|floatformat:0 }}</small></div></div></div>{% endfor %}</div><div class="chart-legend"><span><i class="legend-income"></i>Доходи</span><span><i class="legend-expense"></i>Витрати</span></div>{% else %}<p class="empty-state">У цей період операцій немає.</p>{% endif %}
+    </section>
+
+    <section class="panel report-category-panel">
+      <div class="section-heading"><div><p class="eyebrow">СТРУКТУРА ВИТРАТ</p><h2>За категоріями</h2></div></div>
+      {% if category_rows %}<div class="report-category-list">{% for row in category_rows %}<div class="report-category-row"><div class="category-meta"><span class="category-name"><i style="--category-color: {{ row.category__color }}"></i>{{ row.category__name }}</span><strong>{{ row.total|floatformat:2 }} ₴ <small>{{ row.share }}%</small></strong></div><div class="category-track"><span style="width: {{ row.width }}%; --category-color: {{ row.category__color }}"></span></div></div>{% endfor %}</div>{% else %}<p class="empty-state">За цей період витрат немає.</p>{% endif %}
+    </section>
+  </div>
+
+  <section class="panel account-report-panel">
+    <div class="section-heading"><div><p class="eyebrow">ЗМІНА ЗАЛИШКІВ</p><h2>Баланс рахунків</h2></div><a class="quiet-link" href="{% url 'account_list' %}">Рахунки ↗</a></div>
+    <div class="account-report-totals"><div><small>На початок</small><strong>{{ account_start_total|floatformat:2 }} ₴</strong></div><span class="account-change-arrow">→</span><div><small>На кінець</small><strong>{{ account_end_total|floatformat:2 }} ₴</strong></div></div>
+    {% if account_rows %}<div class="account-report-list">{% for row in account_rows %}<div class="account-report-row"><span class="account-dot" style="--account-color: {{ row.account.color }}"></span><strong class="account-report-name">{{ row.account.name }}</strong><span class="account-report-start">{{ row.start_balance|floatformat:2 }} ₴</span><span class="account-change-arrow">→</span><strong class="account-report-end">{{ row.end_balance|floatformat:2 }} ₴</strong><span class="account-report-change {% if row.change < 0 %}negative{% else %}positive{% endif %}">{% if row.change > 0 %}+{% endif %}{{ row.change|floatformat:2 }} ₴</span></div>{% endfor %}</div>{% else %}<p class="empty-state">Додай рахунок, щоб відстежувати зміну балансу.</p>{% endif %}
+  </section>
+  {% endif %}
+</section>
+{% endblock %}

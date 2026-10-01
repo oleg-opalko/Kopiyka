@@ -1,0 +1,29 @@
+{% extends 'finance/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<section class="form-page">
+  <a class="back-link" href="{% url 'dashboard' %}">← До огляду</a>
+  <div class="page-heading"><div><p class="eyebrow">ОБЛІК</p><h1>{{ title }}</h1><p class="subheading">Запис з'явиться у звіті за обрану дату.</p></div>{% if title == 'Нова операція' %}<a class="button button-quiet" href="{% url 'transfer_create' %}">Переказ між рахунками</a>{% endif %}</div>
+  <form method="post" class="form-panel">{% csrf_token %}
+    {% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+    {% for field in form %}<div class="field-group{% if field.errors %} field-error{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<small class="error-text">{{ error }}</small>{% endfor %}</div>{% endfor %}
+    <div class="form-actions"><button class="button button-primary" type="submit">Зберегти операцію</button><a class="button button-quiet" href="{% url 'transaction_list' %}">Скасувати</a></div>
+  </form>
+</section>
+<script>
+  const transactionKind = document.getElementById("id_kind");
+  const transactionCategory = document.getElementById("id_category");
+  const filterCategoryOptions = () => {
+    if (!transactionKind || !transactionCategory) return;
+    const kindLabel = transactionKind.options[transactionKind.selectedIndex].text.trim();
+    for (const option of transactionCategory.options) {
+      const allowed = !option.value || option.textContent.trim().startsWith(`${kindLabel} ·`);
+      option.hidden = !allowed;
+      option.disabled = !allowed;
+      if (!allowed && option.selected) transactionCategory.value = "";
+    }
+  };
+  transactionKind?.addEventListener("change", filterCategoryOptions);
+  filterCategoryOptions();
+</script>
+{% endblock %}

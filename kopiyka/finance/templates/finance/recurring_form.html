@@ -1,0 +1,27 @@
+{% extends 'finance/base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<section class="form-page">
+  <a class="back-link" href="{% url 'recurring_list' %}">← До регулярних платежів</a>
+  <div class="page-heading"><div><p class="eyebrow">ПЛАНУВАННЯ</p><h1>{{ title }}<span class="heading-dot">.</span></h1><p class="subheading">Операції створюються лише після твого підтвердження.</p></div></div>
+  <form method="post" class="form-panel">{% csrf_token %}{% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}
+    {% for field in form %}<div class="field-group{% if field.errors %} field-error{% endif %}{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<small class="error-text">{{ error }}</small>{% endfor %}</div>{% endfor %}
+    <div class="form-actions"><button class="button button-primary" type="submit">Зберегти графік</button><a class="button button-quiet" href="{% url 'recurring_list' %}">Скасувати</a></div>
+  </form>
+</section>
+<script>
+  const recurringKind = document.getElementById("id_kind");
+  const recurringCategory = document.getElementById("id_category");
+  const filterRecurringCategories = () => {
+    const kindLabel = recurringKind.options[recurringKind.selectedIndex].text.trim();
+    for (const option of recurringCategory.options) {
+      const allowed = !option.value || option.textContent.trim().startsWith(`${kindLabel} ·`);
+      option.hidden = !allowed;
+      option.disabled = !allowed;
+      if (!allowed && option.selected) recurringCategory.value = "";
+    }
+  };
+  recurringKind.addEventListener("change", filterRecurringCategories);
+  filterRecurringCategories();
+</script>
+{% endblock %}

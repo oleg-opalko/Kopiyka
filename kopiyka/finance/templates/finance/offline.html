@@ -1,0 +1,22 @@
+{% load static %}
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f4f6f1">
+  <title>Немає з'єднання · Kopiyka</title>
+  <link rel="icon" type="image/svg+xml" href="{% static 'finance/icon.svg' %}">
+  <link rel="stylesheet" href="{% static 'finance/app.css' %}?v=mobile-add-center-1">
+</head>
+<body class="offline-body">
+  <main class="offline-page">
+    <a class="brand" href="/"><span class="brand-mark">k</span><span>Kopiyka</span></a>
+    <div class="offline-mark" aria-hidden="true">↗</div>
+    <p class="eyebrow">З'ЄДНАННЯ ВІДСУТНЄ</p>
+    <h1>Потрібен інтернет<span class="heading-dot">.</span></h1>
+    <p class="offline-copy">Фінансові дані не зберігаються на цьому пристрої офлайн. Під'єднайся до мережі, щоб продовжити безпечно.</p>
+    <button class="button button-primary" type="button" onclick="window.location.reload()">Спробувати ще раз</button>
+  </main>
+</body>
+</html>

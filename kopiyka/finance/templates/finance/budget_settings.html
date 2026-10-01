@@ -1,0 +1,15 @@
+{% extends 'finance/base.html' %}
+{% block title %}Бюджети{% endblock %}
+{% block content %}
+<section class="content-page">
+  <div class="page-heading"><div><p class="eyebrow">ПЛАНУВАННЯ</p><h1>Бюджети<span class="heading-dot">.</span></h1><p class="subheading">Ліміти на {{ month_label }}</p></div><div class="month-switcher"><a href="?month={{ previous_month }}" aria-label="Попередній місяць">←</a><span>{{ month_label }}</span><a href="?month={{ next_month }}" aria-label="Наступний місяць">→</a></div></div>
+  <div class="budget-layout">
+    <div class="budget-forms">
+      <form method="post" class="panel budget-form-panel">{% csrf_token %}<input type="hidden" name="month" value="{{ month|date:'Y-m' }}"><div class="section-heading"><div><p class="eyebrow">ЗАГАЛЬНА МЕЖА</p><h2>Місячний бюджет</h2></div></div>{% for field in monthly_form %}<div class="field-group"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<small class="error-text">{{ error }}</small>{% endfor %}</div>{% endfor %}<button class="button button-primary" type="submit" name="save_monthly">Зберегти ліміт</button></form>
+      <form method="post" class="panel budget-form-panel">{% csrf_token %}<input type="hidden" name="month" value="{{ month|date:'Y-m' }}"><div class="section-heading"><div><p class="eyebrow">ДЕТАЛІЗАЦІЯ</p><h2>Ліміт категорії</h2></div></div>{% for field in category_form %}<div class="field-group"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<small class="error-text">{{ error }}</small>{% endfor %}</div>{% endfor %}<button class="button button-quiet" type="submit" name="save_category">Додати або оновити ліміт</button></form>
+    </div>
+    <aside class="panel"><div class="section-heading"><div><p class="eyebrow">КАТЕГОРІЙНІ МЕЖІ</p><h2>На цей місяць</h2></div></div>{% if category_budgets %}<div class="budget-list">{% for item in category_budgets %}<div class="budget-list-row"><span class="category-name"><i style="--category-color: {{ item.category.color }}"></i>{{ item.category.name }}</span><strong>{{ item.amount|floatformat:2 }} ₴</strong><form method="post">{% csrf_token %}<input type="hidden" name="month" value="{{ month|date:'Y-m' }}"><button class="text-button" name="delete_category_budget" value="{{ item.pk }}" type="submit" aria-label="Видалити ліміт {{ item.category.name }}">×</button></form></div>{% endfor %}</div>{% else %}<p class="empty-state">Додай ліміти для категорій, які хочеш тримати під контролем.</p>{% endif %}<a class="text-link" href="{% url 'category_create' %}">Створити категорію ↗</a></aside>
+  </div>
+  <section class="panel category-tools"><div class="section-heading"><div><p class="eyebrow">НАЛАШТУВАННЯ</p><h2>Твої категорії</h2></div><a class="quiet-link" href="{% url 'category_create' %}">+ Нова категорія</a></div><ul>{% for category in categories %}<li>{{ category.name }} · {% if category.kind == 'expense' %}Витрата{% else %}Дохід{% endif %}</li>{% endfor %}</ul></section>
+</section>
+{% endblock %}

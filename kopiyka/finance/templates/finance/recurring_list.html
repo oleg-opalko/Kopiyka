@@ -1,0 +1,10 @@
+{% extends 'finance/base.html' %}
+{% block title %}Регулярні платежі{% endblock %}
+{% block content %}
+<section class="content-page">
+  <div class="page-heading"><div><p class="eyebrow">ПОВТОРЮВАНІ ЗАПИСИ</p><h1>Регулярні платежі<span class="heading-dot">.</span></h1><p class="subheading">Перевіряй і додавай повтори у журнал, коли вони настануть.</p></div><a class="button button-primary" href="{% url 'recurring_create' %}"><span class="plus">+</span> Новий графік</a></div>
+  <section class="panel recurring-list">
+    {% if payments %}{% for payment in payments %}<article class="recurring-row"><span class="transaction-category-mark" style="--category-color: {{ payment.category.color }}">⟳</span><div class="transaction-primary recurring-primary"><strong>{{ payment.category.name }}{% if payment.note %}<span class="recurring-note"> · {{ payment.note }}</span>{% endif %}</strong><small>{{ payment.get_kind_display }} · {{ payment.get_frequency_display }} · наступна дата {{ payment.next_due_on|date:'j M Y' }}{% if not payment.is_active %} · призупинено{% endif %}</small></div><strong class="transaction-amount {% if payment.kind == 'income' %}positive{% endif %}">{% if payment.kind == 'expense' %}−{% else %}+{% endif %}{{ payment.amount|floatformat:2 }} ₴</strong><div class="recurring-actions"><a href="{% url 'recurring_update' payment.pk %}">Налаштувати</a>{% if payment.is_active and payment.next_due_on <= today %}<form method="post" action="{% url 'recurring_generate' payment.pk %}">{% csrf_token %}<button class="button button-primary button-small" type="submit">Створити пропущені</button></form>{% else %}<span class="due-status">{% if not payment.is_active %}Неактивний{% else %}Очікується{% endif %}</span>{% endif %}</div></article>{% endfor %}{% else %}<div class="recurring-empty"><span class="empty-mark">⟳</span><h2>Ще немає регулярних платежів</h2><p>Додай оренду, підписку чи зарплату. Коли настане дата, зможеш одним натисканням створити пропущені операції.</p><a class="button button-primary" href="{% url 'recurring_create' %}">Створити перший графік</a></div>{% endif %}
+  </section>
+</section>
+{% endblock %}

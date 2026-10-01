@@ -1,0 +1,9 @@
+{% extends 'finance/base.html' %}
+{% block title %}Нова категорія{% endblock %}
+{% block content %}
+<section class="form-page">
+  <a class="back-link" href="{% url 'budget_settings' %}">← До бюджетів</a>
+  <div class="page-heading"><div><p class="eyebrow">НАЛАШТУВАННЯ</p><h1>Нова категорія<span class="heading-dot">.</span></h1><p class="subheading">Категорія буде доступна для нових операцій.</p></div></div>
+  <form method="post" class="form-panel">{% csrf_token %}{% if form.non_field_errors %}<div class="form-errors">{{ form.non_field_errors }}</div>{% endif %}{% for field in form %}<div class="field-group{% if field.errors %} field-error{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% for error in field.errors %}<small class="error-text">{{ error }}</small>{% endfor %}</div>{% endfor %}<div class="form-actions"><button class="button button-primary" type="submit">Створити категорію</button><a class="button button-quiet" href="{% url 'budget_settings' %}">Скасувати</a></div></form>
+</section>
+{% endblock %}
